@@ -52,7 +52,7 @@ def save_metrics_csv(metrics_rows, filename):
         for r in metrics_rows:
             writer.writerow(r)
 
-def plot_gantt(segments, title="Gantt Chart", savefile=None):
+def plot_gantt(segments, title="Gantt Chart", savefile=None, figsize=(12,3), dpi=200):
     if not segments:
         print(f"[plot] Nothing to plot for: {title}")
         return
@@ -60,7 +60,7 @@ def plot_gantt(segments, title="Gantt Chart", savefile=None):
     pids = sorted({s[0] for s in merged})
     y_positions = {pid: i for i, pid in enumerate(pids[::-1])}
     fig_height = max(2, 0.5 * len(pids))
-    fig, ax = plt.subplots(figsize=(10, fig_height))
+    fig, ax = plt.subplots(figsize=figsize if figsize else (10, fig_height), dpi=dpi)
     for pid, s, e in merged:
         y = y_positions[pid]
         ax.broken_barh([(s, e - s)], (y - 0.4, 0.8), edgecolor='black')
@@ -72,7 +72,7 @@ def plot_gantt(segments, title="Gantt Chart", savefile=None):
     ax.grid(True, axis='x', linestyle='--', alpha=0.4)
     plt.tight_layout()
     if savefile:
-        plt.savefig(savefile)
+        plt.savefig(savefile, bbox_inches='tight', dpi=dpi)
         print(f"[plot] Saved: {savefile}")
     plt.show()
 
