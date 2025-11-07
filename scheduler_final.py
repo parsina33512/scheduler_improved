@@ -17,7 +17,6 @@ import math
 import csv
 import statistics
 from collections import deque
-import argparse
 import matplotlib.pyplot as plt
 
 # ---------------------------
@@ -55,7 +54,7 @@ def save_metrics_csv(metrics_rows, filename):
 
 def plot_gantt(segments, title="Gantt Chart", savefile=None):
     if not segments:
-        print(f"[plot] چیزی برای رسم وجود ندارد: {title}")
+        print(f"[plot] Nothing to plot for: {title}")
         return
     merged = merge_segments(segments)
     pids = sorted({s[0] for s in merged})
@@ -74,7 +73,7 @@ def plot_gantt(segments, title="Gantt Chart", savefile=None):
     plt.tight_layout()
     if savefile:
         plt.savefig(savefile)
-        print(f"[plot] ذخیره شد: {savefile}")
+        print(f"[plot] Saved: {savefile}")
     plt.show()
 
 # ---------------------------
@@ -299,54 +298,54 @@ def read_csv(fname):
 def interactive_input():
     while True:
         try:
-            n = int(input("تعداد پردازه‌ها را وارد کنید (مثال: 4): ").strip())
+            n = int(input("Enter number of processes (e.g. 4): ").strip())
             if n<=0:
-                print("عدد باید مثبت باشد.")
+                print("Number must be positive.")
                 continue
             break
         except Exception:
-            print("عدد صحیح وارد کن.")
+            print("Please enter a valid integer.")
     procs=[]
     for i in range(1,n+1):
         while True:
-            raw = input(f"P{i} — زمان ورود و زمان اجرا (arrival burst) را وارد کن (مثال: 0 3): ").strip().split()
+            raw = input(f"P{i} — enter Arrival and Burst (e.g. 0 3): ").strip().split()
             if len(raw) < 2:
-                print("دو عدد نیاز است؛ دوباره تلاش کن.")
+                print("Two numbers required; try again.")
                 continue
             try:
                 at = float(raw[0]); bt = float(raw[1])
                 procs.append({'pid':i,'arrival':at,'burst':bt})
                 break
             except Exception:
-                print("اعداد معتبر وارد کن (مثال: 0.0 3.5).")
+                print("Enter valid numbers (e.g. 0.0 3.5).")
     return procs
 
 def show_menu():
-    print("\n=== شبیه‌ساز زمان‌بندی پردازنده ===")
-    print("1) اجرای یک الگوریتم انتخابی")
-    print("2) اجرای همه الگوریتم‌ها (بنچمارک)")
-    print("3) خواندن از فایل CSV (هر سطر: arrival,burst)")
-    print("4) خروج")
-    choice = input("انتخاب کنید (1/2/3/4): ").strip()
+    print("\n=== CPU Scheduling Simulator ===")
+    print("1) Run a single algorithm")
+    print("2) Run all algorithms (benchmark)")
+    print("3) Read from CSV file (each line: arrival,burst)")
+    print("4) Exit")
+    choice = input("Choose (1/2/3/4): ").strip()
     return choice
 
 def choose_algo_prompt():
-    print("\nکدام الگوریتم؟")
-    print("1) FCFS (FIFI)")
+    print("\nWhich algorithm?")
+    print("1) FCFS (First-Come First-Served)")
     print("2) SJF (predictive)")
     print("3) SRTF (preemptive SJF)")
     print("4) Round Robin")
     print("5) HRRN")
     print("6) MLFQ (simple)")
-    print("7) بازگشت به منو")
-    return input("انتخاب (1..7): ").strip()
+    print("7) Return to menu")
+    return input("Choose (1..7): ").strip()
 
 def run_single_algo(procs, algo_key, params):
     name_map = {'1':'fcfs','2':'sjf','3':'srtf','4':'rr','5':'hrrn','6':'mlfq'}
     algo = name_map.get(algo_key)
     if not algo:
         return None
-    print(f"\n[info] در حال اجرای: {algo.upper()} ...")
+    print(f"\n[info] Running: {algo.upper()} ...")
     if algo == 'fcfs':
         segs, comp = fcfs(procs, cs=params['cs'])
     elif algo == 'sjf':
@@ -385,7 +384,7 @@ def run_single_algo(procs, algo_key, params):
 # Main interactive loop
 # ---------------------------
 def interactive_run():
-    print("شروعِ حالتِ تعاملی (Interactive). اگر می‌خوای از فایل CSV بخونی، گزینه‌ی مربوطه در منو هست.")
+    print("Starting interactive mode. If you want to read processes from a CSV file, choose that option in the menu.")
     params = {
         'quantum': 3.0, 'cs': 0.0, 'alpha': 0.5, 'init_tau': None,
         'preempt_threshold': 0.0, 'adaptive': False, 'aging':20.0,
@@ -394,55 +393,55 @@ def interactive_run():
     while True:
         choice = show_menu()
         if choice == '4':
-            print("خروج. موفق باشی.")
+            print("Exit. Good luck.")
             break
         if choice == '3':
-            fname = input("مسیر فایل CSV را وارد کن (هر سطر: arrival,burst): ").strip()
+            fname = input("Enter path to CSV file (each line: arrival,burst): ").strip()
             try:
                 procs = read_csv(fname)
             except Exception as e:
-                print("خطا در خواندن فایل:", e)
+                print("Error reading file:", e)
                 continue
         elif choice in ('1','2'):
             # get processes from interactive input
             procs = interactive_input()
         else:
-            print("انتخاب نامعتبر، دوباره تلاش کن.")
+            print("Invalid choice, try again.")
             continue
 
         # gather global params
         try:
-            cs_in = input(f"هزینهٔ context switch (time units) (پیش‌فرض {params['cs']}): ").strip()
+            cs_in = input(f"Context switch cost (time units) (default {params['cs']}): ").strip()
             if cs_in != '':
                 params['cs'] = float(cs_in)
         except:
-            print("مقدار معتبر وارد کن؛ از مقدار پیش‌فرض استفاده می‌شود.")
+            print("Invalid value; using default.")
 
         try:
-            q_in = input(f"time quantum پایه برای RR/MLFQ (پیش‌فرض {params['quantum']}): ").strip()
+            q_in = input(f"Base time quantum for RR/MLFQ (default {params['quantum']}): ").strip()
             if q_in != '':
                 params['quantum'] = float(q_in)
         except:
             pass
 
-        alpha_in = input(f"alpha برای predictive-SJF (0..1) (پیش‌فرض {params['alpha']}): ").strip()
+        alpha_in = input(f"Alpha for predictive-SJF (0..1) (default {params['alpha']}): ").strip()
         if alpha_in != '':
             try: params['alpha'] = float(alpha_in)
             except: pass
 
-        th_in = input(f"SRTF preempt threshold (پیش‌فرض {params['preempt_threshold']}): ").strip()
+        th_in = input(f"SRTF preempt threshold (default {params['preempt_threshold']}): ").strip()
         if th_in != '':
             try: params['preempt_threshold'] = float(th_in)
             except: pass
 
-        adapt_in = input(f"آیا RR adaptive باشد؟ (y/n) (پیش‌فرض n): ").strip().lower()
+        adapt_in = input(f"Use adaptive RR? (y/n) (default n): ").strip().lower()
         params['adaptive'] = (adapt_in == 'y')
 
-        plot_in = input(f"نمایش گانت؟ (y/n) (پیش‌فرض y): ").strip().lower()
+        plot_in = input(f"Show Gantt charts? (y/n) (default y): ").strip().lower()
         params['plot'] = (plot_in != 'n')
-        savepng_in = input(f"ذخیره گانت به PNG؟ (y/n) (پیش‌فرض n): ").strip().lower()
+        savepng_in = input(f"Save Gantt charts to PNG? (y/n) (default n): ").strip().lower()
         params['save_png'] = (savepng_in == 'y')
-        metrics_in = input(f"آیا metrics را به CSV ذخیره کنم؟ مسیر فایل را وارد کن یا Enter برای نادیده گرفتن: ").strip()
+        metrics_in = input(f"Save metrics to CSV? Enter filepath or press Enter to skip: ").strip()
         params['metrics_csv'] = metrics_in if metrics_in != '' else None
 
         if choice == '2':
@@ -456,7 +455,7 @@ def interactive_run():
             if params['metrics_csv']:
                 # append algorithm names are already in rows
                 save_metrics_csv(all_rows, params['metrics_csv'])
-                print(f"[io] تمام متریک‌ها ذخیره شدند در {params['metrics_csv']}")
+                print(f"[io] All metrics saved to {params['metrics_csv']}")
             continue
 
         # single algorithm execution
@@ -465,24 +464,24 @@ def interactive_run():
             if ak == '7':
                 break
             if ak not in ('1','2','3','4','5','6'):
-                print("عدد معتبر وارد کن.")
+                print("Enter a valid number.")
                 continue
             # for RR ask quantum if user wants override
             if ak == '4':
-                q_ask = input(f"می‌خواهی quantum را تغییر دهی؟ (فعلی {params['quantum']}) y/n: ").strip().lower()
+                q_ask = input(f"Do you want to override quantum? (current {params['quantum']}) y/n: ").strip().lower()
                 if q_ask == 'y':
                     try:
-                        params['quantum'] = float(input("مقدار quantum را وارد کن: ").strip())
+                        params['quantum'] = float(input("Enter quantum value: ").strip())
                     except:
-                        print("مقدار نامعتبر؛ از مقدار قبلی استفاده می‌شود.")
+                        print("Invalid value; using previous quantum.")
             rows = run_single_algo(procs, ak, params)
             # after running, ask if run another algorithm on same input
-            again = input("آیا می‌خواهی الگوریتم دیگری با همان ورودی اجرا کنی؟ (y/n): ").strip().lower()
+            again = input("Run another algorithm with the same input? (y/n): ").strip().lower()
             if again != 'y':
                 break
 
 def main():
-    print("scheduler_final — شبیه‌ساز تعاملی زمان‌بندی پردازنده\n")
+    print("scheduler_final — interactive CPU scheduling simulator\n")
     interactive_run()
 
 if __name__ == "__main__":
